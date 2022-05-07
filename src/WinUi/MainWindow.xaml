@@ -7,23 +7,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:pages="using:WinUi.Pages"
     mc:Ignorable="d">
 
-    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+    <NavigationView x:Name="navigation" PaneDisplayMode="Top" SelectionChanged="NavigationSelected" IsSettingsVisible="False" IsBackButtonVisible="Collapsed">
+        <NavigationView.MenuItems>
+            <NavigationViewItem Content="Servers" Tag="Servers" />
+        </NavigationView.MenuItems>
+        <Frame x:Name="contentFrame"/>
+    </NavigationView>
 
-        <Button x:Name="addNewServerBtn" Click="addNewServerBtn_Click" Padding="10" HorizontalAlignment="Center">
-            <StackPanel Orientation="Horizontal">
-                <Image Source="/Assets/add.scale-200.png" Height="20"/>
-                <TextBlock FontWeight="SemiBold" Text="New Redis Server"  VerticalAlignment="Stretch"/>
-            </StackPanel>
-        </Button>
-        <GridView x:Name="Servers" ItemsSource="{x:Bind RedisConnections, Mode=OneWay}">
-            <GridView.ItemTemplate>
-                <DataTemplate x:Name="IconTextTemplate" x:DataType="local:RedisConnection">
-                    <StackPanel Width="264" Height="48" Padding="12" Orientation="Horizontal" AutomationProperties.Name="{x:Bind Address}">
-                        <SymbolIcon Symbol="Folder" VerticalAlignment="Top"/>
-                        <TextBlock Margin="12,0,0,0" Width="204" Text="{x:Bind Address}"/>
-                    </StackPanel>
-                </DataTemplate>
-            </GridView.ItemTemplate>
-        </GridView>
-    </StackPanel>
 </Window>
