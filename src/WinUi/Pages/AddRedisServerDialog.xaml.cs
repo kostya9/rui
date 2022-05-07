@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml.Controls;
+﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using StackExchange.Redis;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -10,9 +11,21 @@ namespace WinUi.Pages
     {
         public RedisConnection? Result { get; private set; }
 
+        public bool IsFormValid => !string.IsNullOrWhiteSpace(serverTxt.Text) && this.portTxt.Value > 0;
+
         public AddRedisServerDialog()
         {
             this.InitializeComponent();
+            serverTxt.TextChanged += (_, _) => ValuesChanged();
+            portTxt.ValueChanged += (_, _) => ValuesChanged();
+        }
+
+        /// <summary>
+        /// This should be called every time computed values should be re-computed
+        /// </summary>
+        private void ValuesChanged()
+        {
+            this.Bindings.Update();
         }
 
         private async void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
@@ -24,6 +37,8 @@ namespace WinUi.Pages
 
             try
             {
+                OnConnectionStart();
+
                 var url = this.serverTxt.Text;
                 var port = (int)this.portTxt.Value;
                 var configOptions = new ConfigurationOptions()
@@ -37,15 +52,39 @@ namespace WinUi.Pages
                 };
                 await ConnectionMultiplexer.ConnectAsync(configOptions);
                 this.Result = new RedisConnection(url, port, configOptions.User, configOptions.Password);
+                OnSuccessfulConnection();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                OnFailedConnection();
+                args.Cancel = true;
+                Console.WriteLine($"Failed to connect to redis: {ex}");
             }
             finally
             {
                 deferral.Complete();
             }
         }
+
+        private void OnConnectionStart()
+        {
+            this.IsPrimaryButtonEnabled = false;
+            this.PrimaryButtonText = "Connecting...";
+        }
+
+        private void OnFailedConnection()
+        {
+            this.PrimaryButtonText = DefaultPrimaryButtonText;
+            this.IsPrimaryButtonEnabled = true;
+            this.errorTextBlock.Text = "Failed to connect";
+        }
+
+        private void OnSuccessfulConnection()
+        {
+            this.PrimaryButtonText = DefaultPrimaryButtonText;
+            this.IsPrimaryButtonEnabled = true;
+        }
+
+        private readonly string DefaultPrimaryButtonText = "Add";
     }
 }

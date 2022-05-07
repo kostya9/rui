@@ -7,18 +7,20 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Title="SIGN IN"
-    PrimaryButtonText="Add"  
+    Title="Add Redis Server"
+    PrimaryButtonText="{x:Bind DefaultPrimaryButtonText, Mode=OneTime}"
     CloseButtonText="Cancel"
-    PrimaryButtonClick="ContentDialog_PrimaryButtonClick">
+    PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
+    IsPrimaryButtonEnabled="{x:Bind IsFormValid}">
 
-    <StackPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+    <StackPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0" Padding="0">
+
         <TextBox x:Name="serverTxt" Header="Server"/>
         <NumberBox x:Name="portTxt" Header="Port" SpinButtonPlacementMode="Hidden"/>
         
         <TextBox x:Name="usernameTxt" Header="Username"/>
         <PasswordBox x:Name="passwordTxt" Header="Password" IsPasswordRevealButtonEnabled="True"/>
 
-        <TextBlock x:Name="errorTextBlock"/>
+        <TextBlock Foreground="Red" x:Name="errorTextBlock"/>
     </StackPanel>
 </ContentDialog>
