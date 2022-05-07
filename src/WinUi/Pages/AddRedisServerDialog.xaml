@@ -1,0 +1,24 @@
+﻿<!-- SignInContentDialog.xaml -->
+<ContentDialog
+    x:Class="WinUi.Pages.AddRedisServerDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WinUi"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="SIGN IN"
+    PrimaryButtonText="Add"  
+    CloseButtonText="Cancel"
+    PrimaryButtonClick="ContentDialog_PrimaryButtonClick">
+
+    <StackPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+        <TextBox x:Name="serverTxt" Header="Server"/>
+        <NumberBox x:Name="portTxt" Header="Port" SpinButtonPlacementMode="Hidden"/>
+        
+        <TextBox x:Name="usernameTxt" Header="Username"/>
+        <PasswordBox x:Name="passwordTxt" Header="Password" IsPasswordRevealButtonEnabled="True"/>
+
+        <TextBlock x:Name="errorTextBlock"/>
+    </StackPanel>
+</ContentDialog>
