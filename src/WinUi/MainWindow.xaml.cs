@@ -1,4 +1,6 @@
-﻿using Microsoft.UI.Xaml;
+﻿using Microsoft.UI;
+using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.ObjectModel;
 using System.Text.Json;
@@ -29,6 +31,17 @@ namespace WinUi
 
         private void OnStarted()
         {
+            // Can't do this in XAML
+            // https://github.com/microsoft/microsoft-ui-xaml/issues/3689
+            this.Title = "rui";
+
+            // Can't do this the way the other icons are set up
+            // https://github.com/microsoft/microsoft-ui-xaml/issues/6773
+            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            WindowId windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
+            AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
+            appWindow.SetIcon("Assets/logo/spider.ico");
+
             var folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             if (folder != null)
             {
