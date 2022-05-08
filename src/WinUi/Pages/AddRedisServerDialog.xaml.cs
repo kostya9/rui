@@ -3,119 +3,118 @@ using StackExchange.Redis;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-namespace WinUi.Pages
+namespace WinUi.Pages;
+
+public sealed partial class AddRedisServerDialog : ContentDialog
 {
-    public sealed partial class AddRedisServerDialog : ContentDialog
+    public RedisServer? Result { get; private set; }
+
+    private bool IsFormValid => !string.IsNullOrWhiteSpace(serverTxt.Text) && this.portTxt.Value > 0;
+
+    private bool FormEditingEnabled => _state == DialogState.Input;
+
+    private bool IsPrimaryButtonAvailable => _state switch
     {
-        public RedisServer? Result { get; private set; }
+        DialogState.Input => IsFormValid,
+        DialogState.Checking => false
+    };
 
-        private bool IsFormValid => !string.IsNullOrWhiteSpace(serverTxt.Text) && this.portTxt.Value > 0;
+    // We cannot actually cancel checking state, so disabling that
+    private bool IsSecondaryButtonAvailable => _state switch
+    {
+        DialogState.Input => true,
+        DialogState.Checking => false
+    };
 
-        private bool FormEditingEnabled => _state == DialogState.Input;
+    private string PrimaryButtonLabel => _state switch
+    {
+        DialogState.Input => "Add",
+        DialogState.Checking => "Connecting..."
+    };
 
-        private bool IsPrimaryButtonAvailable => _state switch
+    private DialogState _state = DialogState.Input;
+
+    public AddRedisServerDialog()
+    {
+        this.InitializeComponent();
+        serverTxt.TextChanged += (_, _) => ValuesChanged();
+        portTxt.ValueChanged += (_, _) => ValuesChanged();
+    }
+
+    /// <summary>
+    /// This should be called every time computed values should be re-computed
+    /// </summary>
+    private void ValuesChanged()
+    {
+        this.Bindings.Update();
+    }
+
+    private async void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+    {
+        // We are already checking stuff
+        if (_state == DialogState.Checking)
+            return;
+
+        // If you're performing async operations in the button click handler,
+        // get a deferral before you await the operation. Then, complete the
+        // deferral when the async operation is complete.
+        ContentDialogButtonClickDeferral deferral = args.GetDeferral();
+
+        try
         {
-            DialogState.Input => IsFormValid,
-            DialogState.Checking => false
-        };
+            OnConnectionStart();
 
-        // We cannot actually cancel checking state, so disabling that
-        private bool IsSecondaryButtonAvailable => _state switch
-        {
-            DialogState.Input => true,
-            DialogState.Checking => false
-        };
-
-        private string PrimaryButtonLabel => _state switch
-        {
-            DialogState.Input => "Add",
-            DialogState.Checking => "Connecting..."
-        };
-
-        private DialogState _state = DialogState.Input;
-
-        public AddRedisServerDialog()
-        {
-            this.InitializeComponent();
-            serverTxt.TextChanged += (_, _) => ValuesChanged();
-            portTxt.ValueChanged += (_, _) => ValuesChanged();
-        }
-
-        /// <summary>
-        /// This should be called every time computed values should be re-computed
-        /// </summary>
-        private void ValuesChanged()
-        {
-            this.Bindings.Update();
-        }
-
-        private async void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
-        {
-            // We are already checking stuff
-            if (_state == DialogState.Checking)
-                return;
-
-            // If you're performing async operations in the button click handler,
-            // get a deferral before you await the operation. Then, complete the
-            // deferral when the async operation is complete.
-            ContentDialogButtonClickDeferral deferral = args.GetDeferral();
-
-            try
+            var url = this.serverTxt.Text;
+            var port = (int)this.portTxt.Value;
+            var configOptions = new ConfigurationOptions()
             {
-                OnConnectionStart();
-
-                var url = this.serverTxt.Text;
-                var port = (int)this.portTxt.Value;
-                var configOptions = new ConfigurationOptions()
+                EndPoints =
                 {
-                    EndPoints =
-                    {
-                        { url, port }
-                    },
-                    User = this.usernameTxt.Text,
-                    Password = this.passwordTxt.Password
-                };
-                await ConnectionMultiplexer.ConnectAsync(configOptions);
-                this.Result = new RedisServer(url, port, configOptions.User, configOptions.Password);
-                OnSuccessfulConnection();
-            }
-            catch (Exception ex)
-            {
-                OnFailedConnection();
-                args.Cancel = true;
-                Console.WriteLine($"Failed to connect to redis: {ex}");
-            }
-            finally
-            {
-                deferral.Complete();
-            }
+                    { url, port }
+                },
+                User = this.usernameTxt.Text,
+                Password = this.passwordTxt.Password
+            };
+            await ConnectionMultiplexer.ConnectAsync(configOptions);
+            this.Result = new RedisServer(url, port, configOptions.User, configOptions.Password);
+            OnSuccessfulConnection();
         }
-
-        private void OnConnectionStart()
+        catch (Exception ex)
         {
-            this.errorTextBlock.Text = "";
-
-            _state = DialogState.Checking;
-            this.ValuesChanged();
+            OnFailedConnection();
+            args.Cancel = true;
+            Console.WriteLine($"Failed to connect to redis: {ex}");
         }
-
-        private void OnFailedConnection()
+        finally
         {
-            this.errorTextBlock.Text = "Failed to connect";
-
-            this._state = DialogState.Input;
-            this.ValuesChanged();
+            deferral.Complete();
         }
+    }
 
-        private void OnSuccessfulConnection()
-        {
-            _state = DialogState.Input;
-            this.ValuesChanged();
-        }
+    private void OnConnectionStart()
+    {
+        this.errorTextBlock.Text = "";
 
-        private enum DialogState
-        {
-            Input, Checking
-        }
+        _state = DialogState.Checking;
+        this.ValuesChanged();
+    }
+
+    private void OnFailedConnection()
+    {
+        this.errorTextBlock.Text = "Failed to connect";
+
+        this._state = DialogState.Input;
+        this.ValuesChanged();
+    }
+
+    private void OnSuccessfulConnection()
+    {
+        _state = DialogState.Input;
+        this.ValuesChanged();
+    }
+
+    private enum DialogState
+    {
+        Input, Checking
     }
 }
