@@ -16,9 +16,9 @@
                 <TextBlock FontWeight="SemiBold" Text="New Redis Server"  VerticalAlignment="Stretch"/>
             </StackPanel>
         </Button>
-        <GridView x:Name="Servers" ItemsSource="{x:Bind _connections.RedisConnections, Mode=OneWay}">
+        <GridView x:Name="Servers" ItemsSource="{x:Bind _connections.RedisServers, Mode=OneWay}" DoubleTapped="Servers_DoubleTapped">
             <GridView.ItemTemplate>
-                <DataTemplate x:Name="IconTextTemplate" x:DataType="global:RedisConnection">
+                <DataTemplate x:Name="IconTextTemplate" x:DataType="global:RedisServer">
                     <StackPanel Width="264" Height="48" Padding="12" Orientation="Horizontal" AutomationProperties.Name="{x:Bind Address}">
                         <SymbolIcon Symbol="Folder" VerticalAlignment="Top"/>
                         <TextBlock Margin="12,0,0,0" Width="204" Text="{x:Bind Address}"/>

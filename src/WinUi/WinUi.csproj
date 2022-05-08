@@ -12,6 +12,7 @@
     <EnablePreviewMsixTooling>true</EnablePreviewMsixTooling>
 	<ImplicitUsings>true</ImplicitUsings>
 	<AssemblyName>rui</AssemblyName>
+	<Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <Content Remove="Assets\logo\spider.ico" />

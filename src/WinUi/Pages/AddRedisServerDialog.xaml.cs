@@ -7,7 +7,7 @@ namespace WinUi.Pages
 {
     public sealed partial class AddRedisServerDialog : ContentDialog
     {
-        public RedisConnection? Result { get; private set; }
+        public RedisServer? Result { get; private set; }
 
         private bool IsFormValid => !string.IsNullOrWhiteSpace(serverTxt.Text) && this.portTxt.Value > 0;
 
@@ -76,7 +76,7 @@ namespace WinUi.Pages
                     Password = this.passwordTxt.Password
                 };
                 await ConnectionMultiplexer.ConnectAsync(configOptions);
-                this.Result = new RedisConnection(url, port, configOptions.User, configOptions.Password);
+                this.Result = new RedisServer(url, port, configOptions.User, configOptions.Password);
                 OnSuccessfulConnection();
             }
             catch (Exception ex)
