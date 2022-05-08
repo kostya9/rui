@@ -2,6 +2,9 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
+using StackExchange.Redis;
+using System.Diagnostics;
+using WinUi.Redis;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -45,13 +48,49 @@ public sealed partial class RedisServers : Page
         }
     }
 
-    private void Servers_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    private async void Servers_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
-        
+        if (_connections == null)
+            return;
+
+        try
+        {
+            if (e.OriginalSource is FrameworkElement { DataContext: RedisServer server })
+            {
+                foreach (var connectedServer in _connections.ConnectedServers)
+                {
+                    // Already connected, skipping
+                    if (connectedServer.Server.Id == server.Id)
+                    {
+                        return;
+                    }
+                }
+
+                var connection = await ConnectionMultiplexer.ConnectAsync(
+                    StackExchangeMapping.ToConnectionOptions(server));
+                _connections.ConnectedServers.Add(new(server, connection));
+            }
+            
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not connect to redis: {ex}");
+        }
     }
 
     public class RedisServerNavigationParameters
     {
         public LoadedServers Servers { get; set; } = new();
+    }
+
+    private void removeServer_Click(object sender, RoutedEventArgs e)
+    {
+        if (_connections == null)
+            return;
+
+        if(e.OriginalSource is FrameworkElement { DataContext: RedisServer server})
+        {
+            _connections.RedisServers.Remove(server);
+        }
     }
 }

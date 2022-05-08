@@ -5,7 +5,7 @@
     xmlns:local="using:WinUi.Pages"
     xmlns:global="using:WinUi"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:uielements="using:WinUi.UiElements"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -16,12 +16,15 @@
                 <TextBlock FontWeight="SemiBold" Text="New Redis Server"  VerticalAlignment="Stretch"/>
             </StackPanel>
         </Button>
-        <GridView x:Name="Servers" ItemsSource="{x:Bind _connections.RedisServers, Mode=OneWay}" DoubleTapped="Servers_DoubleTapped">
+        <GridView x:Name="Servers" ItemsSource="{x:Bind _connections.RedisServers, Mode=OneWay}" DoubleTapped="Servers_DoubleTapped" >
             <GridView.ItemTemplate>
                 <DataTemplate x:Name="IconTextTemplate" x:DataType="global:RedisServer">
-                    <StackPanel Width="264" Height="48" Padding="12" Orientation="Horizontal" AutomationProperties.Name="{x:Bind Address}">
+                    <StackPanel Height="50" Padding="12" Orientation="Horizontal" AutomationProperties.Name="{x:Bind Name}" BorderThickness="2" BorderBrush="Purple">
                         <SymbolIcon Symbol="Folder" VerticalAlignment="Top"/>
-                        <TextBlock Margin="12,0,0,0" Width="204" Text="{x:Bind Address}"/>
+                        <TextBlock Margin="12,0,0,0" Width="50" Text="{x:Bind Name}"/>
+                        <uielements:ClickableAppBarButton Click="removeServer_Click" Icon="Delete" >
+
+                        </uielements:ClickableAppBarButton>
                     </StackPanel>
                 </DataTemplate>
             </GridView.ItemTemplate>

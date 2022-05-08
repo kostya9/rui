@@ -16,7 +16,8 @@
 
     <StackPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0" Padding="0">
 
-        <TextBox IsEnabled="{x:Bind FormEditingEnabled}" x:Name="serverTxt" Header="Server"/>
+        <TextBox IsEnabled="{x:Bind FormEditingEnabled}" x:Name="nameTxt" Header="Name"/>
+        <TextBox IsEnabled="{x:Bind FormEditingEnabled}" x:Name="serverTxt" Header="Address"/>
         <NumberBox IsEnabled="{x:Bind FormEditingEnabled}" x:Name="portTxt" Header="Port" SpinButtonPlacementMode="Hidden"/>
 
         <TextBox IsEnabled="{x:Bind FormEditingEnabled}" x:Name="usernameTxt" Header="Username"/>

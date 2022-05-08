@@ -9,7 +9,7 @@ public sealed partial class AddRedisServerDialog : ContentDialog
 {
     public RedisServer? Result { get; private set; }
 
-    private bool IsFormValid => !string.IsNullOrWhiteSpace(serverTxt.Text) && this.portTxt.Value > 0;
+    private bool IsFormValid => !string.IsNullOrWhiteSpace(serverTxt.Text) && this.portTxt.Value > 0 && !string.IsNullOrWhiteSpace(nameTxt.Text);
 
     private bool FormEditingEnabled => _state == DialogState.Input;
 
@@ -64,6 +64,7 @@ public sealed partial class AddRedisServerDialog : ContentDialog
         {
             OnConnectionStart();
 
+            var name = this.nameTxt.Text;
             var url = this.serverTxt.Text;
             var port = (int)this.portTxt.Value;
             var configOptions = new ConfigurationOptions()
@@ -76,7 +77,7 @@ public sealed partial class AddRedisServerDialog : ContentDialog
                 Password = this.passwordTxt.Password
             };
             await ConnectionMultiplexer.ConnectAsync(configOptions);
-            this.Result = new RedisServer(url, port, configOptions.User, configOptions.Password);
+            this.Result = new RedisServer(name, url, port, configOptions.User, configOptions.Password);
             OnSuccessfulConnection();
         }
         catch (Exception ex)
