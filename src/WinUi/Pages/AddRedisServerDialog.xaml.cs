@@ -1,7 +1,5 @@
-﻿using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
+﻿using Microsoft.UI.Xaml.Controls;
 using StackExchange.Redis;
-
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -11,7 +9,30 @@ namespace WinUi.Pages
     {
         public RedisConnection? Result { get; private set; }
 
-        public bool IsFormValid => !string.IsNullOrWhiteSpace(serverTxt.Text) && this.portTxt.Value > 0;
+        private bool IsFormValid => !string.IsNullOrWhiteSpace(serverTxt.Text) && this.portTxt.Value > 0;
+
+        private bool FormEditingEnabled => _state == DialogState.Input;
+
+        private bool IsPrimaryButtonAvailable => _state switch
+        {
+            DialogState.Input => IsFormValid,
+            DialogState.Checking => false
+        };
+
+        // We cannot actually cancel checking state, so disabling that
+        private bool IsSecondaryButtonAvailable => _state switch
+        {
+            DialogState.Input => true,
+            DialogState.Checking => false
+        };
+
+        private string PrimaryButtonLabel => _state switch
+        {
+            DialogState.Input => "Add",
+            DialogState.Checking => "Connecting..."
+        };
+
+        private DialogState _state = DialogState.Input;
 
         public AddRedisServerDialog()
         {
@@ -30,6 +51,10 @@ namespace WinUi.Pages
 
         private async void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
+            // We are already checking stuff
+            if (_state == DialogState.Checking)
+                return;
+
             // If you're performing async operations in the button click handler,
             // get a deferral before you await the operation. Then, complete the
             // deferral when the async operation is complete.
@@ -68,23 +93,29 @@ namespace WinUi.Pages
 
         private void OnConnectionStart()
         {
-            this.IsPrimaryButtonEnabled = false;
-            this.PrimaryButtonText = "Connecting...";
+            this.errorTextBlock.Text = "";
+
+            _state = DialogState.Checking;
+            this.ValuesChanged();
         }
 
         private void OnFailedConnection()
         {
-            this.PrimaryButtonText = DefaultPrimaryButtonText;
-            this.IsPrimaryButtonEnabled = true;
             this.errorTextBlock.Text = "Failed to connect";
+
+            this._state = DialogState.Input;
+            this.ValuesChanged();
         }
 
         private void OnSuccessfulConnection()
         {
-            this.PrimaryButtonText = DefaultPrimaryButtonText;
-            this.IsPrimaryButtonEnabled = true;
+            _state = DialogState.Input;
+            this.ValuesChanged();
         }
 
-        private readonly string DefaultPrimaryButtonText = "Add";
+        private enum DialogState
+        {
+            Input, Checking
+        }
     }
 }
