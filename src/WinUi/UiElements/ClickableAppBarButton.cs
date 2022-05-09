@@ -2,7 +2,7 @@
 using Microsoft.UI.Xaml.Controls;
 
 namespace WinUi.UiElements;
-internal class ClickableAppBarButton : AppBarButton
+internal class ClickableButton : Button
 {
     protected override void OnApplyTemplate()
     {

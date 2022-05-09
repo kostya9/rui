@@ -2,9 +2,11 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Animation;
 using StackExchange.Redis;
 using System.Collections.ObjectModel;
 using System.Text.Json;
+using WinUi.Infrastructure;
 using WinUi.Pages;
 using static WinUi.Pages.RedisServers;
 
@@ -19,10 +21,14 @@ namespace WinUi;
 public sealed partial class MainWindow : Window
 {
     private LoadedServers _servers = new();
+    private Navigation _navigation;
 
-    public MainWindow()
+    public MainWindow(Navigation navigation)
     {
         this.InitializeComponent();
+
+        _navigation = navigation;
+        _navigation.InitializeNavigationBase(this.navigation);
 
         this.Closed += OnClosed;
 
@@ -49,6 +55,7 @@ public sealed partial class MainWindow : Window
         this._servers.ConnectedServers.CollectionChanged += ConnectedServers_CollectionChanged;
     }
 
+
     public static readonly DependencyProperty IconProperty = DependencyProperty.Register(
         "Icon", typeof(IconElement), typeof(IconElement), new PropertyMetadata(default(IconElement)));
 
@@ -63,12 +70,13 @@ public sealed partial class MainWindow : Window
 
                 var serverInfo = connectedServer.Server;
 
-                navigation.MenuItems.Add(new NavigationViewItem()
+                var newMenuItem = new NavigationViewItem()
                 {
                     Content = serverInfo.Name,
-                    Tag = serverInfo.Id,
+                    Tag = connectedServer,
                     Icon = new SymbolIcon(Symbol.Folder)
-                });
+                };
+                navigation.MenuItems.Add(newMenuItem);
             }
         }
 
@@ -76,7 +84,7 @@ public sealed partial class MainWindow : Window
         {
             foreach (var item in e.OldItems)
             {
-                if (item is not RedisServer server)
+                if (item is not ConnectedRedisServer connectedServer)
                     continue;
 
                 var removeIdx = -1;
@@ -84,7 +92,7 @@ public sealed partial class MainWindow : Window
                 {
                     object? menu = navigation.MenuItems[i];
 
-                    if(menu is NavigationViewItem navViewItem && navViewItem.Tag is Guid guid && guid == server.Id)
+                    if(menu is NavigationViewItem navViewItem && navViewItem.Tag is ConnectedRedisServer menuServer && menuServer == connectedServer)
                     {
                         removeIdx = i;
                         break;
@@ -93,7 +101,7 @@ public sealed partial class MainWindow : Window
 
                 if (removeIdx >= 0)
                 {
-                    e.OldItems.RemoveAt(removeIdx);
+                    navigation.MenuItems.RemoveAt(removeIdx);
                 }
             }
         }
@@ -142,7 +150,15 @@ public sealed partial class MainWindow : Window
 
     private void NavigationSelected(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
-        contentFrame.NavigateToType(typeof(RedisServers), new RedisServerNavigationParameters { Servers = _servers }, null);
+        var transitionInfo = new SuppressNavigationTransitionInfo();
+
+        if (args.SelectedItem is NavigationViewItem { Tag: ConnectedRedisServer server })
+        {
+            contentFrame.Navigate(typeof(ConnectedRedisServerPage), new ConnectedRedisServerPage.ConnectedRedisServerPageNavigationArgs(server), transitionInfo);
+            return;
+        }
+
+        contentFrame.Navigate(typeof(RedisServers), new RedisServerNavigationParameters(_servers, _navigation), transitionInfo);
     }
 }
 

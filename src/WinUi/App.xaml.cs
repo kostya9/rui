@@ -26,7 +26,7 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
-        m_window = new MainWindow();
+        m_window = new MainWindow(new Infrastructure.Navigation());
         m_window.Activate();
     }
 

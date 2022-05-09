@@ -76,7 +76,7 @@ public sealed partial class AddRedisServerDialog : ContentDialog
                 User = this.usernameTxt.Text,
                 Password = this.passwordTxt.Password
             };
-            await ConnectionMultiplexer.ConnectAsync(configOptions);
+            using var _ = await ConnectionMultiplexer.ConnectAsync(configOptions);
             this.Result = new RedisServer(name, url, port, configOptions.User, configOptions.Password);
             OnSuccessfulConnection();
         }

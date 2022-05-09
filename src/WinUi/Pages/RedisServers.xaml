@@ -16,15 +16,23 @@
                 <TextBlock FontWeight="SemiBold" Text="New Redis Server"  VerticalAlignment="Stretch"/>
             </StackPanel>
         </Button>
-        <GridView x:Name="Servers" ItemsSource="{x:Bind _connections.RedisServers, Mode=OneWay}" DoubleTapped="Servers_DoubleTapped" >
+        <GridView x:Name="Servers" ItemsSource="{x:Bind _navProperties.Servers.RedisServers, Mode=OneWay}" DoubleTapped="Servers_DoubleTapped" >
             <GridView.ItemTemplate>
                 <DataTemplate x:Name="IconTextTemplate" x:DataType="global:RedisServer">
-                    <StackPanel Height="50" Padding="12" Orientation="Horizontal" AutomationProperties.Name="{x:Bind Name}" BorderThickness="2" BorderBrush="Purple">
-                        <SymbolIcon Symbol="Folder" VerticalAlignment="Top"/>
-                        <TextBlock Margin="12,0,0,0" Width="50" Text="{x:Bind Name}"/>
-                        <uielements:ClickableAppBarButton Click="removeServer_Click" Icon="Delete" >
+                    <StackPanel Height="57" Padding="12" Orientation="Horizontal" AutomationProperties.Name="{x:Bind Name}" BorderThickness="2" BorderBrush="Purple">
+                        <SymbolIcon Symbol="Folder" VerticalAlignment="Center"/>
+                        <TextBlock Margin="12,0,0,0" MinWidth="50" Text="{x:Bind Name}" VerticalAlignment="Center"/>
+                        <uielements:ClickableButton Click="removeServer_Click" ToolTipService.ToolTip="Delete">
+                            <Viewbox>
+                                <SymbolIcon Symbol="Delete" />
+                            </Viewbox>
+                        </uielements:ClickableButton>
 
-                        </uielements:ClickableAppBarButton>
+                        <uielements:ClickableButton Click="connect_Click" ToolTipService.ToolTip="Open">
+                            <Viewbox>
+                                <SymbolIcon Symbol="Go" />
+                            </Viewbox>
+                        </uielements:ClickableButton>
                     </StackPanel>
                 </DataTemplate>
             </GridView.ItemTemplate>

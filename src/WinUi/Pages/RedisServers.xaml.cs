@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using StackExchange.Redis;
 using System.Diagnostics;
+using WinUi.Infrastructure;
 using WinUi.Redis;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -16,7 +17,7 @@ namespace WinUi.Pages;
 /// </summary>
 public sealed partial class RedisServers : Page
 {
-    private LoadedServers? _connections;
+    private RedisServerNavigationParameters? _navProperties;
 
     public RedisServers()
     {
@@ -25,14 +26,16 @@ public sealed partial class RedisServers : Page
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
-        this._connections = ((RedisServerNavigationParameters)e.Parameter).Servers;
+        this._navProperties = (RedisServerNavigationParameters)e.Parameter;
         base.OnNavigatedTo(e);
     }
 
     private async void addNewServerBtn_Click(object sender, RoutedEventArgs e)
     {
-        if (_connections == null)
+        if (_navProperties == null)
             return;
+
+        var connections = _navProperties.Servers;
 
         var addRedisServerDialog = new AddRedisServerDialog();
         addRedisServerDialog.XamlRoot = Content.XamlRoot;
@@ -43,54 +46,91 @@ public sealed partial class RedisServers : Page
         {
             if (addRedisServerDialog.Result != null)
             {
-                _connections.RedisServers.Add(addRedisServerDialog.Result);
+                connections.RedisServers.Add(addRedisServerDialog.Result);
             }
         }
     }
 
     private async void Servers_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
-        if (_connections == null)
+        if (e.OriginalSource is FrameworkElement { DataContext: RedisServer server })
+        {
+            var connectedServer = await ConnectAsync(server);
+            if (connectedServer != null)
+            {
+                _navProperties?.Navigation.TryNavigateToServer(connectedServer);
+            }
+        }
+    }
+
+    public record RedisServerNavigationParameters(LoadedServers Servers, Navigation Navigation);
+
+    private async void removeServer_Click(object sender, RoutedEventArgs e)
+    {
+        if (_navProperties == null)
             return;
+
+        var connections = _navProperties.Servers;
+
+        if (e.OriginalSource is FrameworkElement { DataContext: RedisServer server})
+        {
+            var dialog = new ContentDialog();
+            dialog.Title = "Are you sure?";
+            dialog.Content = $"Are you sure you want to delete server '{server.Name}'?";
+            dialog.PrimaryButtonText = "Delete";
+            dialog.SecondaryButtonText = "Cancel";
+
+            dialog.XamlRoot = this.Content.XamlRoot;
+
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                connections.RedisServers.Remove(server);
+            }
+        }
+    }
+
+    private async void connect_Click(object sender, RoutedEventArgs e)
+    {
+        if (e.OriginalSource is FrameworkElement { DataContext: RedisServer server })
+        {
+            var connectedServer = await ConnectAsync(server);
+            if (connectedServer != null)
+            {
+                _navProperties?.Navigation.TryNavigateToServer(connectedServer);
+            }
+        }
+    }
+
+    private async Task<ConnectedRedisServer?> ConnectAsync(RedisServer server)
+    {
+        if (_navProperties == null)
+            return null;
+
+        var connections = _navProperties.Servers;
 
         try
         {
-            if (e.OriginalSource is FrameworkElement { DataContext: RedisServer server })
+            foreach (var existingConnectedServer in connections.ConnectedServers)
             {
-                foreach (var connectedServer in _connections.ConnectedServers)
+                // Already connected, skipping
+                if (existingConnectedServer.Server.Id == server.Id)
                 {
-                    // Already connected, skipping
-                    if (connectedServer.Server.Id == server.Id)
-                    {
-                        return;
-                    }
+                    return existingConnectedServer;
                 }
-
-                var connection = await ConnectionMultiplexer.ConnectAsync(
-                    StackExchangeMapping.ToConnectionOptions(server));
-                _connections.ConnectedServers.Add(new(server, connection));
             }
-            
+
+            var connection = await ConnectionMultiplexer.ConnectAsync(
+                StackExchangeMapping.ToConnectionOptions(server));
+            var connectedServer = new ConnectedRedisServer(server, connection);
+            connections.ConnectedServers.Add(connectedServer);
+
+            return connectedServer;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Could not connect to redis: {ex}");
-        }
-    }
-
-    public class RedisServerNavigationParameters
-    {
-        public LoadedServers Servers { get; set; } = new();
-    }
-
-    private void removeServer_Click(object sender, RoutedEventArgs e)
-    {
-        if (_connections == null)
-            return;
-
-        if(e.OriginalSource is FrameworkElement { DataContext: RedisServer server})
-        {
-            _connections.RedisServers.Remove(server);
+            return null;
         }
     }
 }
