@@ -41,7 +41,7 @@ public class Navigation
         _navigationView.DispatcherQueue.TryEnqueue(() => _navigationView.SelectedItem = _navigationView.MenuItems[0]);
     }
 
-    public bool IsAtServer(ConnectedRedisServer connectedServer)
+    public bool IsCurrentlyAtServer(ConnectedRedisServer connectedServer)
     {
         if (_navigationView is null)
             return false;

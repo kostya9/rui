@@ -129,7 +129,7 @@ public sealed partial class MainWindow : Window
             this._servers.ConnectedServers.Remove(connectedServer);
             connectedServer.Connection.Dispose();
 
-            if (this._navigation.IsAtServer(connectedServer))
+            if (this._navigation.IsCurrentlyAtServer(connectedServer))
             {
                 this._navigation.NavigateToServersList();
             }
