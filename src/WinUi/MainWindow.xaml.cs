@@ -70,11 +70,26 @@ public sealed partial class MainWindow : Window
 
                 var serverInfo = connectedServer.Server;
 
+                var disconnectMenuItem = new MenuFlyoutItem()
+                {
+                    Text = "Disconnect",
+                    Tag = connectedServer
+                };
+
+                disconnectMenuItem.Click += DisconnectMenuItem_Click;
+
                 var newMenuItem = new NavigationViewItem()
                 {
                     Content = serverInfo.Name,
                     Tag = connectedServer,
-                    Icon = new SymbolIcon(Symbol.Folder)
+                    Icon = new SymbolIcon(Symbol.Folder),
+                    ContextFlyout = new MenuFlyout()
+                    {
+                        Items =
+                        {
+                            disconnectMenuItem
+                        }
+                    }
                 };
                 navigation.MenuItems.Add(newMenuItem);
             }
@@ -103,6 +118,20 @@ public sealed partial class MainWindow : Window
                 {
                     navigation.MenuItems.RemoveAt(removeIdx);
                 }
+            }
+        }
+    }
+
+    private void DisconnectMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem { Tag: ConnectedRedisServer connectedServer })
+        {
+            this._servers.ConnectedServers.Remove(connectedServer);
+            connectedServer.Connection.Dispose();
+
+            if (this._navigation.IsAtServer(connectedServer))
+            {
+                this._navigation.NavigateToServersList();
             }
         }
     }

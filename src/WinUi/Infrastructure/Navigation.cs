@@ -33,4 +33,27 @@ public class Navigation
         }
     }
 
+    internal void NavigateToServersList()
+    {
+        if (_navigationView is null)
+            return;
+
+        _navigationView.DispatcherQueue.TryEnqueue(() => _navigationView.SelectedItem = _navigationView.MenuItems[0]);
+    }
+
+    public bool IsAtServer(ConnectedRedisServer connectedServer)
+    {
+        if (_navigationView is null)
+            return false;
+
+        var selectedItem = _navigationView.SelectedItem;
+
+        if (selectedItem is NavigationViewItem { Tag: ConnectedRedisServer menuServer })
+        {
+            if (menuServer == connectedServer)
+                return true;
+        }
+
+        return false;
+    }
 }
