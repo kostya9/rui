@@ -92,8 +92,9 @@ public sealed partial class MainWindow : Window
                         {
                             disconnectMenuItem
                         }
-                    }
+                    },
                 };
+                newMenuItem.PointerPressed += RedisServer_PointerPressed;
                 navigation.MenuItems.Add(newMenuItem);
             }
         }
@@ -125,18 +126,35 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private void RedisServer_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (sender is NavigationViewItem { Tag: ConnectedRedisServer connectedServer } menuItem)
+        {
+            var pointer = e.GetCurrentPoint(menuItem);
+            if (pointer.Properties.IsMiddleButtonPressed)
+            {
+                Disconnect(connectedServer);
+            }
+        }
+    }
+
     private void DisconnectMenuItem_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem { Tag: ConnectedRedisServer connectedServer })
         {
-            if (this._navigation.IsCurrentlyAtServer(connectedServer))
-            {
-                this._navigation.NavigateToServersList();
-            }
-
-            this._servers.ConnectedServers.Remove(connectedServer);
-            connectedServer.Connection.Dispose();
+            Disconnect(connectedServer);
         }
+    }
+
+    private void Disconnect(ConnectedRedisServer connectedServer)
+    {
+        if (this._navigation.IsCurrentlyAtServer(connectedServer))
+        {
+            this._navigation.NavigateToServersList();
+        }
+
+        this._servers.ConnectedServers.Remove(connectedServer);
+        connectedServer.Connection.Dispose();
     }
 
     private void OnClosed(object sender, WindowEventArgs args)
