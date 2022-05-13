@@ -5,7 +5,10 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
 using StackExchange.Redis;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
+using WinUi.Annotations;
 using WinUi.Infrastructure;
 using WinUi.Pages;
 using static WinUi.Pages.RedisServers;
@@ -126,13 +129,13 @@ public sealed partial class MainWindow : Window
     {
         if (sender is MenuFlyoutItem { Tag: ConnectedRedisServer connectedServer })
         {
-            this._servers.ConnectedServers.Remove(connectedServer);
-            connectedServer.Connection.Dispose();
-
             if (this._navigation.IsCurrentlyAtServer(connectedServer))
             {
                 this._navigation.NavigateToServersList();
             }
+
+            this._servers.ConnectedServers.Remove(connectedServer);
+            connectedServer.Connection.Dispose();
         }
     }
 
@@ -191,6 +194,44 @@ public sealed partial class MainWindow : Window
     }
 }
 
+public class RedisServerListEntry : INotifyPropertyChanged
+{
+    public RedisServer Server { get; }
+
+    private bool _isConnecting;
+    public bool IsConnecting
+    {
+        get
+        {
+            return _isConnecting;
+        }
+        set
+        {
+            _isConnecting = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(Icon));
+            OnPropertyChanged(nameof(Clickable));
+        }
+    }
+
+    public Symbol Icon => IsConnecting ? Symbol.Sync : Symbol.Go;
+
+    public bool Clickable => !IsConnecting;
+
+    public RedisServerListEntry(RedisServer server)
+    {
+        Server = server;
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    [NotifyPropertyChangedInvocator]
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+
 public record RedisServer(string Name, string Address, int Port, string Username, string Password)
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -200,7 +241,7 @@ public record ConnectedRedisServer(RedisServer Server, ConnectionMultiplexer Con
 
 public class LoadedServers
 {
-    public ObservableCollection<RedisServer> RedisServers { get; set; } = new();
+    public ObservableCollection<RedisServerListEntry> RedisServers { get; set; } = new();
 
     public ObservableCollection<ConnectedRedisServer> ConnectedServers { get; set; } = new();
 
@@ -208,7 +249,7 @@ public class LoadedServers
     {
         var serializedState = new SerializedState
         {
-            Servers = RedisServers.ToArray()
+            Servers = RedisServers.Select(x => x.Server).ToArray()
         };
         return JsonSerializer.Serialize(serializedState);
     }
@@ -218,7 +259,8 @@ public class LoadedServers
         var serializedState = JsonSerializer.Deserialize<SerializedState>(data) ?? new SerializedState();
         return new LoadedServers
         {
-            RedisServers = new ObservableCollection<RedisServer>(serializedState.Servers)
+            RedisServers = new ObservableCollection<RedisServerListEntry>(
+                serializedState.Servers.Select(x => new RedisServerListEntry(x)).ToArray())
         };
     }
 

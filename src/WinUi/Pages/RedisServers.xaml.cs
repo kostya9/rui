@@ -46,24 +46,40 @@ public sealed partial class RedisServers : Page
         {
             if (addRedisServerDialog.Result != null)
             {
-                connections.RedisServers.Add(addRedisServerDialog.Result);
+                connections.RedisServers.Add(new RedisServerListEntry(addRedisServerDialog.Result));
             }
         }
     }
 
     private async void Servers_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
-        if (e.OriginalSource is FrameworkElement { DataContext: RedisServer server })
+        if (e.OriginalSource is FrameworkElement { DataContext: RedisServerListEntry entry })
         {
-            var connectedServer = await ConnectAsync(server);
-            if (connectedServer != null)
-            {
-                _navProperties?.Navigation.TryNavigateToServer(connectedServer);
-            }
+            await ConnectAsync(entry);
         }
     }
 
-    public record RedisServerNavigationParameters(LoadedServers Servers, Navigation Navigation);
+    private async void connect_Click(object sender, RoutedEventArgs e)
+    {
+        if (e.OriginalSource is FrameworkElement { DataContext: RedisServerListEntry entry })
+        {
+            await ConnectAsync(entry);
+        }
+    }
+
+    private async Task ConnectAsync(RedisServerListEntry entry)
+    {
+        if (entry.IsConnecting)
+            return;
+
+        entry.IsConnecting = true;
+        var connectedServer = await ConnectAsync(entry.Server);
+        entry.IsConnecting = false;
+        if (connectedServer != null)
+        {
+            _navProperties?.Navigation.TryNavigateToServer(connectedServer);
+        }
+    }
 
     private async void removeServer_Click(object sender, RoutedEventArgs e)
     {
@@ -72,11 +88,11 @@ public sealed partial class RedisServers : Page
 
         var connections = _navProperties.Servers;
 
-        if (e.OriginalSource is FrameworkElement { DataContext: RedisServer server})
+        if (e.OriginalSource is FrameworkElement { DataContext: RedisServerListEntry entry})
         {
             var dialog = new ContentDialog();
             dialog.Title = "Are you sure?";
-            dialog.Content = $"Are you sure you want to delete server '{server.Name}'?";
+            dialog.Content = $"Are you sure you want to delete server '{entry.Server.Name}'?";
             dialog.PrimaryButtonText = "Delete";
             dialog.SecondaryButtonText = "Cancel";
 
@@ -85,19 +101,7 @@ public sealed partial class RedisServers : Page
             var result = await dialog.ShowAsync();
             if (result == ContentDialogResult.Primary)
             {
-                connections.RedisServers.Remove(server);
-            }
-        }
-    }
-
-    private async void connect_Click(object sender, RoutedEventArgs e)
-    {
-        if (e.OriginalSource is FrameworkElement { DataContext: RedisServer server })
-        {
-            var connectedServer = await ConnectAsync(server);
-            if (connectedServer != null)
-            {
-                _navProperties?.Navigation.TryNavigateToServer(connectedServer);
+                connections.RedisServers.Remove(entry);
             }
         }
     }
@@ -133,4 +137,6 @@ public sealed partial class RedisServers : Page
             return null;
         }
     }
+
+    public record RedisServerNavigationParameters(LoadedServers Servers, Navigation Navigation);
 }

@@ -18,19 +18,19 @@
         </Button>
         <GridView x:Name="Servers" ItemsSource="{x:Bind _navProperties.Servers.RedisServers, Mode=OneWay}" DoubleTapped="Servers_DoubleTapped" >
             <GridView.ItemTemplate>
-                <DataTemplate x:Name="IconTextTemplate" x:DataType="global:RedisServer">
-                    <StackPanel Height="57" Padding="12" Orientation="Horizontal" AutomationProperties.Name="{x:Bind Name}" BorderThickness="2" BorderBrush="Purple">
+                <DataTemplate x:Name="IconTextTemplate" x:DataType="global:RedisServerListEntry">
+                    <StackPanel Height="57" Padding="12" Orientation="Horizontal" AutomationProperties.Name="{x:Bind Server.Name}" BorderThickness="2" BorderBrush="Purple">
                         <SymbolIcon Symbol="Folder" VerticalAlignment="Center"/>
-                        <TextBlock Margin="12,0,0,0" MinWidth="50" Text="{x:Bind Name}" VerticalAlignment="Center"/>
+                        <TextBlock Margin="12,0,0,0" MinWidth="50" Text="{x:Bind Server.Name}" VerticalAlignment="Center"/>
                         <uielements:ClickableButton Click="removeServer_Click" ToolTipService.ToolTip="Delete">
                             <Viewbox>
                                 <SymbolIcon Symbol="Delete" />
                             </Viewbox>
                         </uielements:ClickableButton>
 
-                        <uielements:ClickableButton Click="connect_Click" ToolTipService.ToolTip="Open">
+                        <uielements:ClickableButton Click="connect_Click" ToolTipService.ToolTip="Open" IsEnabled="{x:Bind Clickable, Mode=OneWay}">
                             <Viewbox>
-                                <SymbolIcon Symbol="Go" />
+                                <SymbolIcon Symbol="{x:Bind Icon, Mode=OneWay}" />
                             </Viewbox>
                         </uielements:ClickableButton>
                     </StackPanel>

@@ -27,7 +27,8 @@ public class Navigation
                 if (item == _navigationView.SelectedItem)
                     return;
 
-                _ = _navigationView.DispatcherQueue.TryEnqueue(() => _navigationView.SelectedItem = item);
+                _navigationView.DispatcherQueue.TryEnqueue(() => _navigationView.SelectedItem = item);
+
                 return;
             }
         }
