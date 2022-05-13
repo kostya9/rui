@@ -126,27 +126,27 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void RedisServer_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    private async void RedisServer_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
         if (sender is NavigationViewItem { Tag: ConnectedRedisServer connectedServer } menuItem)
         {
             var pointer = e.GetCurrentPoint(menuItem);
             if (pointer.Properties.IsMiddleButtonPressed)
             {
-                Disconnect(connectedServer);
+                await Disconnect(connectedServer);
             }
         }
     }
 
-    private void DisconnectMenuItem_Click(object sender, RoutedEventArgs e)
+    private async void DisconnectMenuItem_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem { Tag: ConnectedRedisServer connectedServer })
         {
-            Disconnect(connectedServer);
+            await Disconnect(connectedServer);
         }
     }
 
-    private void Disconnect(ConnectedRedisServer connectedServer)
+    private async Task Disconnect(ConnectedRedisServer connectedServer)
     {
         if (this._navigation.IsCurrentlyAtServer(connectedServer))
         {
@@ -154,6 +154,7 @@ public sealed partial class MainWindow : Window
         }
 
         this._servers.ConnectedServers.Remove(connectedServer);
+        await connectedServer.Connection.CloseAsync();
         connectedServer.Connection.Dispose();
     }
 
