@@ -3,12 +3,6 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
-using StackExchange.Redis;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
-using WinUi.Annotations;
 using WinUi.Infrastructure;
 using WinUi.Pages;
 using static WinUi.Pages.RedisServers;
@@ -148,6 +142,9 @@ public sealed partial class MainWindow : Window
 
     private async Task Disconnect(ConnectedRedisServer connectedServer)
     {
+        if (connectedServer.ServerEntry.IsBusy)
+            return;
+
         if (this._navigation.IsCurrentlyAtServer(connectedServer))
         {
             this._navigation.NavigateToServersList();
@@ -220,89 +217,5 @@ public sealed partial class MainWindow : Window
         }
 
         contentFrame.Navigate(typeof(RedisServers), new RedisServerNavigationParameters(_servers, _navigation), transitionInfo);
-    }
-}
-
-public class RedisServerListEntry : INotifyPropertyChanged
-{
-    public enum State { Connected, Connecting, Disconnected, Disconnecting }
-
-    public RedisServer Server { get; }
-
-    private State _entryState;
-    public State EntryState
-    {
-        get
-        {
-            return _entryState;
-        }
-        set
-        {
-            _entryState = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(IsNotBusy));
-            OnPropertyChanged(nameof(IsBusy));
-            OnPropertyChanged(nameof(GoIcon));
-            OnPropertyChanged(nameof(DeleteIcon));
-        }
-    }
-
-    public bool IsNotBusy => !IsBusy;
-    public bool IsBusy => _entryState is State.Connecting or State.Disconnecting;
-
-    public Symbol GoIcon => IsBusy ? Symbol.Sync : Symbol.Go;
-
-    public Symbol DeleteIcon => IsBusy ? Symbol.Sync : Symbol.Delete;
-
-    public RedisServerListEntry(RedisServer server)
-    {
-        Server = server;
-        _entryState = State.Disconnected;
-    }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    [NotifyPropertyChangedInvocator]
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-}
-
-public record RedisServer(string Name, string Address, int Port, string Username, string Password)
-{
-    public Guid Id { get; set; } = Guid.NewGuid();
-};
-
-public record ConnectedRedisServer(RedisServerListEntry ServerEntry, ConnectionMultiplexer Connection);
-
-public class LoadedServers
-{
-    public ObservableCollection<RedisServerListEntry> RedisServers { get; set; } = new();
-
-    public ObservableCollection<ConnectedRedisServer> ConnectedServers { get; set; } = new();
-
-    public string Serialize()
-    {
-        var serializedState = new SerializedState
-        {
-            Servers = RedisServers.Select(x => x.Server).ToArray()
-        };
-        return JsonSerializer.Serialize(serializedState);
-    }
-
-    public static LoadedServers Deserialize(string data)
-    {
-        var serializedState = JsonSerializer.Deserialize<SerializedState>(data) ?? new SerializedState();
-        return new LoadedServers
-        {
-            RedisServers = new ObservableCollection<RedisServerListEntry>(
-                serializedState.Servers.Select(x => new RedisServerListEntry(x)).ToArray())
-        };
-    }
-
-    private class SerializedState
-    {
-        public RedisServer[] Servers { get; set; } = Array.Empty<RedisServer>();
     }
 }

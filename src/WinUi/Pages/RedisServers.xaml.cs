@@ -6,6 +6,7 @@ using StackExchange.Redis;
 using System.Diagnostics;
 using WinUi.Infrastructure;
 using WinUi.Redis;
+using WinUi.UiElements;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -37,8 +38,10 @@ public sealed partial class RedisServers : Page
 
         var connections = _navProperties.Servers;
 
-        var addRedisServerDialog = new AddRedisServerDialog();
-        addRedisServerDialog.XamlRoot = Content.XamlRoot;
+        var addRedisServerDialog = new AddRedisServerDialog
+        {
+            XamlRoot = Content.XamlRoot
+        };
 
         var result = await addRedisServerDialog.ShowAsync();
 
@@ -100,18 +103,37 @@ public sealed partial class RedisServers : Page
             if (entry.IsBusy)
                 return;
 
-            var dialog = new ContentDialog();
-            dialog.Title = "Are you sure?";
-            dialog.Content = $"Are you sure you want to delete server '{entry.Server.Name}'?";
-            dialog.PrimaryButtonText = "Delete";
-            dialog.SecondaryButtonText = "Cancel";
+            var oldState = entry.EntryState;
+            entry.EntryState = RedisServerListEntry.State.BeingDeleted;
 
-            dialog.XamlRoot = this.Content.XamlRoot;
+            var dialog = new FastReturningContentDialog
+            {
+                Title = "Are you sure?",
+                Content = $"Are you sure you want to delete server '{entry.Server.Name}'?",
+                PrimaryButtonText = "Delete",
+                SecondaryButtonText = "Cancel",
+                XamlRoot = this.Content.XamlRoot
+            };
 
-            var result = await dialog.ShowAsync();
+            var result = await dialog.ShowWithFastReturnAsync();
             if (result == ContentDialogResult.Primary)
             {
+                var correspondingConnectedServer = connections.ConnectedServers.FirstOrDefault(connectedServer => connectedServer.ServerEntry == entry);
+
+                if (correspondingConnectedServer != null)
+                {
+                    connections.ConnectedServers.Remove(correspondingConnectedServer);
+                    entry.EntryState = RedisServerListEntry.State.Disconnected;
+                    await correspondingConnectedServer.Connection.CloseAsync();
+                    correspondingConnectedServer.Connection.Dispose();
+                }
+
                 connections.RedisServers.Remove(entry);
+                entry.EntryState = RedisServerListEntry.State.Disconnected;
+            }
+            else
+            {
+                entry.EntryState = oldState;
             }
         }
     }

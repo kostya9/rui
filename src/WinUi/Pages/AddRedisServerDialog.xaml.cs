@@ -7,6 +7,11 @@ namespace WinUi.Pages;
 
 public sealed partial class AddRedisServerDialog : ContentDialog
 {
+    private enum DialogState
+    {
+        Input, Checking
+    }
+
     public RedisServer? Result { get; private set; }
 
     private bool IsFormValid => !string.IsNullOrWhiteSpace(serverTxt.Text) && this.portTxt.Value > 0 && !string.IsNullOrWhiteSpace(nameTxt.Text);
@@ -112,10 +117,5 @@ public sealed partial class AddRedisServerDialog : ContentDialog
     {
         _state = DialogState.Input;
         this.ValuesChanged();
-    }
-
-    private enum DialogState
-    {
-        Input, Checking
     }
 }
