@@ -69,15 +69,22 @@ public sealed partial class RedisServers : Page
 
     private async Task ConnectAsync(RedisServerListEntry entry)
     {
-        if (entry.IsConnecting)
+        if(_navProperties == null)
             return;
 
-        entry.IsConnecting = true;
-        var connectedServer = await ConnectAsync(entry.Server);
-        entry.IsConnecting = false;
+        if (entry.IsBusy)
+            return;
+
+        entry.EntryState = RedisServerListEntry.State.Connecting;
+        var connectedServer = await NetworkConnectAsync(entry);
         if (connectedServer != null)
         {
+            entry.EntryState = RedisServerListEntry.State.Connected;
             _navProperties?.Navigation.TryNavigateToServer(connectedServer);
+        }
+        else
+        {
+            entry.EntryState = RedisServerListEntry.State.Disconnected;
         }
     }
 
@@ -90,6 +97,9 @@ public sealed partial class RedisServers : Page
 
         if (e.OriginalSource is FrameworkElement { DataContext: RedisServerListEntry entry})
         {
+            if (entry.IsBusy)
+                return;
+
             var dialog = new ContentDialog();
             dialog.Title = "Are you sure?";
             dialog.Content = $"Are you sure you want to delete server '{entry.Server.Name}'?";
@@ -106,7 +116,7 @@ public sealed partial class RedisServers : Page
         }
     }
 
-    private async Task<ConnectedRedisServer?> ConnectAsync(RedisServer server)
+    private async Task<ConnectedRedisServer?> NetworkConnectAsync(RedisServerListEntry serverEntry)
     {
         if (_navProperties == null)
             return null;
@@ -118,17 +128,16 @@ public sealed partial class RedisServers : Page
             foreach (var existingConnectedServer in connections.ConnectedServers)
             {
                 // Already connected, skipping
-                if (existingConnectedServer.Server.Id == server.Id)
+                if (existingConnectedServer.ServerEntry.Server.Id == serverEntry.Server.Id)
                 {
                     return existingConnectedServer;
                 }
             }
 
             var connection = await ConnectionMultiplexer.ConnectAsync(
-                StackExchangeMapping.ToConnectionOptions(server));
-            var connectedServer = new ConnectedRedisServer(server, connection);
-            connections.ConnectedServers.Add(connectedServer);
-
+                StackExchangeMapping.ToConnectionOptions(serverEntry.Server));
+            var connectedServer = new ConnectedRedisServer(serverEntry, connection);
+            _navProperties.Servers.ConnectedServers.Add(connectedServer);
             return connectedServer;
         }
         catch (Exception ex)

@@ -9,6 +9,6 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-        <TextBlock Text="{x:Bind _navArgs.ConnectedServer.Server.Name}" FontSize="100"></TextBlock>
+        <TextBlock Text="{x:Bind _navArgs.ConnectedServer.ServerEntry.Server.Name}" FontSize="100"></TextBlock>
     </StackPanel>
 </Page>

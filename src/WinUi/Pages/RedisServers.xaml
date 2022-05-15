@@ -13,7 +13,7 @@
         <Button x:Name="addNewServerBtn" Click="addNewServerBtn_Click" Padding="10" HorizontalAlignment="Center">
             <StackPanel Orientation="Horizontal">
                 <Image Source="/Assets/add.scale-200.png" Height="20"/>
-                <TextBlock FontWeight="SemiBold" Text="New Redis Server"  VerticalAlignment="Stretch"/>
+                <TextBlock FontWeight="SemiBold" Text="New Redis ServerEntry"  VerticalAlignment="Stretch"/>
             </StackPanel>
         </Button>
         <GridView x:Name="Servers" ItemsSource="{x:Bind _navProperties.Servers.RedisServers, Mode=OneWay}" DoubleTapped="Servers_DoubleTapped" >
@@ -22,15 +22,15 @@
                     <StackPanel Height="57" Padding="12" Orientation="Horizontal" AutomationProperties.Name="{x:Bind Server.Name}" BorderThickness="2" BorderBrush="Purple">
                         <SymbolIcon Symbol="Folder" VerticalAlignment="Center"/>
                         <TextBlock Margin="12,0,0,0" MinWidth="50" Text="{x:Bind Server.Name}" VerticalAlignment="Center"/>
-                        <uielements:ClickableButton Click="removeServer_Click" ToolTipService.ToolTip="Delete">
+                        <uielements:ClickableButton Click="removeServer_Click" ToolTipService.ToolTip="Delete" IsEnabled="{x:Bind IsNotBusy, Mode=OneWay}">
                             <Viewbox>
-                                <SymbolIcon Symbol="Delete" />
+                                <SymbolIcon Symbol="{x:Bind DeleteIcon, Mode=OneWay}" />
                             </Viewbox>
                         </uielements:ClickableButton>
 
-                        <uielements:ClickableButton Click="connect_Click" ToolTipService.ToolTip="Open" IsEnabled="{x:Bind Clickable, Mode=OneWay}">
+                        <uielements:ClickableButton Click="connect_Click" ToolTipService.ToolTip="Open" IsEnabled="{x:Bind IsNotBusy, Mode=OneWay}">
                             <Viewbox>
-                                <SymbolIcon Symbol="{x:Bind Icon, Mode=OneWay}" />
+                                <SymbolIcon Symbol="{x:Bind GoIcon, Mode=OneWay}" />
                             </Viewbox>
                         </uielements:ClickableButton>
                     </StackPanel>

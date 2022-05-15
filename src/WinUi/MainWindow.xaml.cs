@@ -60,7 +60,7 @@ public sealed partial class MainWindow : Window
 
 
     public static readonly DependencyProperty IconProperty = DependencyProperty.Register(
-        "Icon", typeof(IconElement), typeof(IconElement), new PropertyMetadata(default(IconElement)));
+        "GoIcon", typeof(IconElement), typeof(IconElement), new PropertyMetadata(default(IconElement)));
 
     private void ConnectedServers_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
@@ -71,7 +71,7 @@ public sealed partial class MainWindow : Window
                 if (item is not ConnectedRedisServer connectedServer)
                     continue;
 
-                var serverInfo = connectedServer.Server;
+                var serverInfo = connectedServer.ServerEntry;
 
                 var disconnectMenuItem = new MenuFlyoutItem()
                 {
@@ -83,7 +83,7 @@ public sealed partial class MainWindow : Window
 
                 var newMenuItem = new NavigationViewItem()
                 {
-                    Content = serverInfo.Name,
+                    Content = serverInfo.Server.Name,
                     Tag = connectedServer,
                     Icon = new SymbolIcon(Symbol.Folder),
                     ContextFlyout = new MenuFlyout()
@@ -154,8 +154,18 @@ public sealed partial class MainWindow : Window
         }
 
         this._servers.ConnectedServers.Remove(connectedServer);
-        await connectedServer.Connection.CloseAsync();
-        connectedServer.Connection.Dispose();
+
+        connectedServer.ServerEntry.EntryState = RedisServerListEntry.State.Disconnecting;
+
+        try
+        {
+            await connectedServer.Connection.CloseAsync();
+            connectedServer.Connection.Dispose();
+        }
+        finally
+        {
+            connectedServer.ServerEntry.EntryState = RedisServerListEntry.State.Disconnected;
+        }
     }
 
     private void OnClosed(object sender, WindowEventArgs args)
@@ -166,9 +176,9 @@ public sealed partial class MainWindow : Window
     private static void SaveServers(LoadedServers connections)
     {
         var folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        folder = Path.Combine(folder, "rui");
-        if (folder != null)
+        if (!string.IsNullOrEmpty(folder))
         {
+            folder = Path.Combine(folder, "rui");
             var connectionsCachePath = Path.Combine(folder, "connections.json");
             var serializedState = connections.Serialize();
             File.WriteAllText(connectionsCachePath, serializedState);
@@ -178,9 +188,9 @@ public sealed partial class MainWindow : Window
     private static LoadedServers LoadServers()
     {
         var folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        folder = Path.Combine(folder, "rui");
-        if (folder != null)
+        if (!string.IsNullOrEmpty(folder))
         {
+            folder = Path.Combine(folder, "rui");
             var connectionsCachePath = Path.Combine(folder, "connections.json");
             if (File.Exists(connectionsCachePath))
             {
@@ -191,7 +201,7 @@ public sealed partial class MainWindow : Window
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Could not deserialize stateL {ex}");
+                    Console.WriteLine($"Could not deserialize state: {ex}");
                 }
             }
         }
@@ -215,31 +225,39 @@ public sealed partial class MainWindow : Window
 
 public class RedisServerListEntry : INotifyPropertyChanged
 {
+    public enum State { Connected, Connecting, Disconnected, Disconnecting }
+
     public RedisServer Server { get; }
 
-    private bool _isConnecting;
-    public bool IsConnecting
+    private State _entryState;
+    public State EntryState
     {
         get
         {
-            return _isConnecting;
+            return _entryState;
         }
         set
         {
-            _isConnecting = value;
+            _entryState = value;
             OnPropertyChanged();
-            OnPropertyChanged(nameof(Icon));
-            OnPropertyChanged(nameof(Clickable));
+            OnPropertyChanged(nameof(IsNotBusy));
+            OnPropertyChanged(nameof(IsBusy));
+            OnPropertyChanged(nameof(GoIcon));
+            OnPropertyChanged(nameof(DeleteIcon));
         }
     }
 
-    public Symbol Icon => IsConnecting ? Symbol.Sync : Symbol.Go;
+    public bool IsNotBusy => !IsBusy;
+    public bool IsBusy => _entryState is State.Connecting or State.Disconnecting;
 
-    public bool Clickable => !IsConnecting;
+    public Symbol GoIcon => IsBusy ? Symbol.Sync : Symbol.Go;
+
+    public Symbol DeleteIcon => IsBusy ? Symbol.Sync : Symbol.Delete;
 
     public RedisServerListEntry(RedisServer server)
     {
         Server = server;
+        _entryState = State.Disconnected;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -256,7 +274,7 @@ public record RedisServer(string Name, string Address, int Port, string Username
     public Guid Id { get; set; } = Guid.NewGuid();
 };
 
-public record ConnectedRedisServer(RedisServer Server, ConnectionMultiplexer Connection);
+public record ConnectedRedisServer(RedisServerListEntry ServerEntry, ConnectionMultiplexer Connection);
 
 public class LoadedServers
 {
