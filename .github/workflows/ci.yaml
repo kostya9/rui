@@ -24,7 +24,7 @@ jobs:
         uses: microsoft/setup-msbuild@v1.0.2
 
       - name: Install dependencies
-        run: msbuild rui.sln /t:Restore /p:Configuration=Release
+        run: msbuild src\WinUi\WinUi.csproj /t:Restore /p:Configuration=Release
 
       - name: Decode the pfx
         run: |
@@ -33,7 +33,7 @@ jobs:
           [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
 
       - name: Create the app package
-        run: msbuild rui.sln /p:Configuration=Release /p:Platform=x64 /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
+        run: msbuild src\WinUi\WinUi.csproj /p:Configuration=Release /p:Platform=x64 /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
         env:
           Appx_Bundle: Never
           Appx_Package_Build_Mode: SideloadOnly
