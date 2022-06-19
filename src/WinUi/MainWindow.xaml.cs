@@ -176,6 +176,12 @@ public sealed partial class MainWindow : Window
         if (!string.IsNullOrEmpty(folder))
         {
             folder = Path.Combine(folder, "rui");
+
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
             var connectionsCachePath = Path.Combine(folder, "connections.json");
             var serializedState = connections.Serialize();
             File.WriteAllText(connectionsCachePath, serializedState);

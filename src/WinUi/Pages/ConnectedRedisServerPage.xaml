@@ -11,7 +11,6 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200"></ColumnDefinition>
             <ColumnDefinition Width="*"></ColumnDefinition>
@@ -33,12 +32,21 @@
                     <SymbolIcon Symbol="Refresh"></SymbolIcon>
                 </Button>
             </StackPanel>
-            
-            <ListView Grid.Row="1" ItemsSource="{x:Bind _page.Page.ConnectedServer.VisibleKeys}">
+
+            <ListView Grid.Row="1" ItemsSource="{x:Bind _page.Page.ConnectedServer.VisibleKeys}" x:Name="listViewWithContextFlyout">
+                <ListView.ContextFlyout>
+                    <MenuFlyout Opened="flyoutOpen_Click">
+                        <MenuFlyoutItem
+                            DataContext="{x:Bind listViewWithContextFlyout.SelectedItem, Mode=OneWay}"
+                            Click="btnDelete_Click">
+                            Delete
+                        </MenuFlyoutItem>
+                    </MenuFlyout>
+                </ListView.ContextFlyout>
 
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="global:RedisKey">
-                        <TextBlock Text="{x:Bind Key}"></TextBlock>
+                        <TextBlock Text="{x:Bind Key}" />
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>

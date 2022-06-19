@@ -49,12 +49,31 @@ public sealed partial class ConnectedRedisServerPage : Page
             {
                 var server = connectedMultiplexer.GetServer(endpoint);
                 const int limit = 50;
+                
+                var visibleKeys = _page.Page.ConnectedServer.VisibleKeys;
+                var clientKeys = visibleKeys.ToHashSet();
 
-                _page.Page.ConnectedServer.VisibleKeys.Clear();
-                _page.Page.ConnectedServer.VisibleKeys.Clear();
+                var serverKeys = new HashSet<RedisKey>(_page.Page.ConnectedServer.VisibleKeys.Count);
                 await foreach (var key in server.KeysAsync(pageSize: limit))
                 {
-                    _page.Page.ConnectedServer.VisibleKeys.Add(new RedisKey(key));
+                    var stringKey = key.ToString();
+                    serverKeys.Add(new RedisKey(stringKey));
+                }
+
+                // TODO: I mean, this is calculating a full diff, do we need it in every case?
+                // or can we do better?
+                var toAdd = new HashSet<RedisKey>(serverKeys);
+                toAdd.ExceptWith(clientKeys);
+                foreach (var item in toAdd)
+                {
+                    visibleKeys.Add(item);
+                }
+
+                var toRemove = new HashSet<RedisKey>(clientKeys);
+                toRemove.ExceptWith(serverKeys);
+                foreach (var item in toRemove)
+                {
+                    visibleKeys.Remove(item);
                 }
             }
         }
@@ -99,5 +118,22 @@ public sealed partial class ConnectedRedisServerPage : Page
     private void btnRefresh_Click(object sender, RoutedEventArgs e)
     {
         _ = LoadKeysAsync();
+    }
+
+    private void flyoutOpen_Click(object sender, object e)
+    {
+        if (sender is MenuFlyout { Target: ListViewItem listViewItem } menu)
+        {
+            listViewItem.IsSelected = true;
+        }
+    }
+
+    private async void btnDelete_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem { DataContext: RedisKey key })
+        {
+            await this._page.Page.ConnectedServer.Connection.GetDatabase(0).KeyDeleteAsync(key.Key);
+            _ = LoadKeysAsync();
+        }
     }
 }
