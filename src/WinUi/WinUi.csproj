@@ -18,7 +18,6 @@
   <PropertyGroup>
 		<GenerateAppInstallerFile>True</GenerateAppInstallerFile>
 	    <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
-	    <PackageCertificateThumbprint>F6DDAF929FAC825E54F1D9905C186CD2A1560761</PackageCertificateThumbprint>
 	    <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
 	    <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
 	    <AppxSymbolPackageEnabled>True</AppxSymbolPackageEnabled>
@@ -27,6 +26,7 @@
 	    <AppxBundlePlatforms>x86|x64</AppxBundlePlatforms>
 	    <AppInstallerUri>https://sharovarskyi.com/rui/installer</AppInstallerUri>
 	    <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+	    <PackageCertificateKeyFile>WinUi_TemporaryKey.pfx</PackageCertificateKeyFile>
 	</PropertyGroup>	
 	
 	
