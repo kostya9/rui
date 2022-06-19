@@ -17,6 +17,6 @@ jobs:
           dotnet-version: 7.0.x
           include-prerelease: true
       - name: Install dependencies
-        run: dotnet restore -r windows-x64
+        run: dotnet restore -r win-x64
       - name: Publish
         run: dotnet publish -c Release -r win-x64 -o publish --self-contained /p:SourceRevisionId=${{ github.sha }}
