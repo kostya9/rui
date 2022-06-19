@@ -21,7 +21,7 @@ jobs:
           include-prerelease: true
 
       - name: Install dependencies
-        run: dotnet restore -c Release -r win-x64
+        run: msbuild $env:Solution_Name /t:Restore /p:Configuration=Release
 
       - name: Decode the pfx
         run: |
