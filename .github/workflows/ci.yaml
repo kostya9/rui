@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+
+# Inspired by https://github.com/MicrosoftDocs/windows-uwp/blob/docs/hub/apps/package-and-deploy/ci-for-winui3.md
 jobs:
   pre-release:
     name: "Pre Release"
@@ -17,6 +19,25 @@ jobs:
           dotnet-version: 7.0.x
           include-prerelease: true
       - name: Install dependencies
-        run: dotnet restore -r win-x64
+        run: dotnet restore -c Release -r win-x64
+      - name: Decode the pfx
+        run: |
+          $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_ENCODED_PFX }}")
+          $certificatePath = "GitHubActionsWorkflow.pfx"
+          [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+      - name: Create the app package
+        run: msbuild rui.sln /p:Configuration=Release /p:Platform=x64 /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
+        env:
+          Appx_Bundle: Never
+          Appx_Package_Build_Mode: SideloadOnly
+          Appx_Package_Dir: Packages\
       - name: Publish
         run: dotnet publish -c Release -r win-x64 -o publish --self-contained /p:SourceRevisionId=${{ github.sha }}
+      - name: Remove the pfx
+        run: Remove-Item -path GitHubActionsWorkflow.pfx
+
+      - name: Upload MSIX package
+        uses: actions/upload-artifact@v2
+        with:
+          name: MSIX Package
+          path: ${{ env.Solution_Name }}\\Packages
