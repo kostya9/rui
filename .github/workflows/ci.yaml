@@ -39,7 +39,7 @@ jobs:
         run: |
           cd src\WinUi
           $version = Powershell.exe -executionpolicy remotesigned -File "./find_version.ps1"
-          $version = $version + "." + "${{ env.GITHUB_RUN_NUMBER }}"
+          $version = $version + "." + "$GITHUB_RUN_NUMBER"
           echo ("BUILD_VERSION=" + $version) >> $env:GITHUB_ENV
 
       - name: Create the app package
