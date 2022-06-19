@@ -57,7 +57,7 @@ jobs:
 
           # Add version to the GitHub env variable
           echo ("BUILD_VERSION=" + $newVersion) >> $env:GITHUB_ENV
-
+#
       - name: Create the app package
         run: msbuild src\WinUi\WinUi.csproj /p:Configuration=Release /p:Platform=x64 /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
         env:
@@ -67,10 +67,10 @@ jobs:
 
       - name: Remove the pfx
         run: Remove-Item -path src\WinUi\GitHubActionsWorkflow.pfx
-
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ env.BUILD_VERSION }}
-          files: src\WinUi\Packages\**
-          prerelease: true
+# Release works strangely (404 during setup, and cant really install the .msix file)
+#      - name: Release
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          tag_name: ${{ env.BUILD_VERSION }}
+#          files: src\WinUi\Packages\**
+#          prerelease: true
