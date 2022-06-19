@@ -9,7 +9,7 @@
   <Identity
     Name="77dfca11-39ac-4439-bc63-bbcd8c402f75"
     Publisher="CN=kostya9"
-    Version="0.0.1.0" />
+    Version="0.0.1" />
 
   <Properties>
     <DisplayName>WinUi</DisplayName>
