@@ -76,3 +76,4 @@ jobs:
         with:
           tag_name: ${{ env.BUILD_VERSION }}
           files: src\WinUi\Packages\**
+          prerelease: true
