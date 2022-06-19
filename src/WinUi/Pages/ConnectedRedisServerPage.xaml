@@ -35,7 +35,7 @@
 
             <ListView Grid.Row="1" ItemsSource="{x:Bind _page.Page.ConnectedServer.VisibleKeys}" x:Name="listViewWithContextFlyout">
                 <ListView.ContextFlyout>
-                    <MenuFlyout Opened="flyoutOpen_Click">
+                    <MenuFlyout Opened="flyoutOpen_Click" AreOpenCloseAnimationsEnabled="False"> <!-- Animation kinda slow down and feel clunky (when you click somewhere else while animation is playing) -->
                         <MenuFlyoutItem
                             DataContext="{x:Bind listViewWithContextFlyout.SelectedItem, Mode=OneWay}"
                             Click="btnDelete_Click">
