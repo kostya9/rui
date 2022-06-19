@@ -50,7 +50,7 @@ jobs:
           $newVersion = $foundVersion.Substring(0, $lastZero) + "." + "$env:GITHUB_RUN_NUMBER"
 
           # Replace version in packageManifest
-          $packageManifestContent -replace $foundVersion, $newVersion | Set-Content -Path Package.appxmanifest
+          $packageManifestContent.Replace($foundVersion, $newVersion) | Set-Content -Path Package.appxmanifest
 
           # Add version to the GitHub env variable
           echo ("BUILD_VERSION=" + $newVersion) >> $env:GITHUB_ENV
