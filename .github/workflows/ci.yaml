@@ -38,20 +38,29 @@ jobs:
       - name: Set env
         run: |
           cd src\WinUi
-          $version = Powershell.exe -executionpolicy remotesigned -File "./find_version.ps1"
 
-          $lastZero = $version.LastIndexOf(".0")
-          $version = $version.Substring(0, $lastZero) + "." + "$env:GITHUB_RUN_NUMBER"
+          # Find current version
+          $pattern = '[^\w]Version="((\d.?)+)"'
+          $packageManifestContent = Get-Content Package.appxmanifest -Raw
+          $pattern_match = [regex]::Matches($packageManifestContent, $pattern)
+          $foundVersion = $pattern_match.Groups[1].Value
 
-          echo ("BUILD_VERSION=" + $version) >> $env:GITHUB_ENV
+          # Apply build number
+          $lastZero = $foundVersion.LastIndexOf(".0")
+          $newVersion = $foundVersion.Substring(0, $lastZero) + "." + "$env:GITHUB_RUN_NUMBER"
+
+          # Replace version in packageManifest
+          $packageManifestContent -replace $foundVersion, $newVersion | Set-Content -Path Package.appxmanifest
+
+          # Add version to the GitHub env variable
+          echo ("BUILD_VERSION=" + $newVersion) >> $env:GITHUB_ENV
 
       - name: Create the app package
-        run: msbuild src\WinUi\WinUi.csproj /p:Configuration=Release /p:Platform=x64 /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true /p:Version=$env:Version
+        run: msbuild src\WinUi\WinUi.csproj /p:Configuration=Release /p:Platform=x64 /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
         env:
           Appx_Bundle: Never
           Appx_Package_Build_Mode: SideloadOnly
           Appx_Package_Dir: Packages\
-          Version: ${{ env.BUILD_VERSION }}
 
       - name: Remove the pfx
         run: Remove-Item -path src\WinUi\GitHubActionsWorkflow.pfx
