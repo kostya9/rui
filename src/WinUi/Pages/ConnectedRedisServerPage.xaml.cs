@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using WinUi.Annotations;
+using WinUi.UiElements;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -132,8 +133,21 @@ public sealed partial class ConnectedRedisServerPage : Page
     {
         if (sender is MenuFlyoutItem { DataContext: RedisKey key })
         {
-            await this._page.Page.ConnectedServer.Connection.GetDatabase(0).KeyDeleteAsync(key.Key);
-            _ = LoadKeysAsync();
+            var dialog = new FastReturningContentDialog
+            {
+                Title = "Are you sure?",
+                Content = $"Are you sure you want to delete redis key '{key.Key}'?",
+                PrimaryButtonText = "Delete",
+                SecondaryButtonText = "Cancel",
+                XamlRoot = this.Content.XamlRoot
+            };
+
+            var result = await dialog.ShowWithFastReturnAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                await this._page.Page.ConnectedServer.Connection.GetDatabase(0).KeyDeleteAsync(key.Key);
+                _ = LoadKeysAsync();
+            }
         }
     }
 }
