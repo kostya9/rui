@@ -28,11 +28,8 @@ jobs:
 
       - name: Decode the pfx
         run: |
-          $dir = Get-Location
-          [System.IO.Directory]::SetCurrentDirectory($dir)
-
           $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_ENCODED_PFX }}")
-          $certificatePath = "GitHubActionsWorkflow.pfx"
+          $certificatePath = "src\WinUi\GitHubActionsWorkflow.pfx"
           [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
 
       - name: Create the app package
@@ -43,7 +40,7 @@ jobs:
           Appx_Package_Dir: Packages\
 
       - name: Remove the pfx
-        run: Remove-Item -path GitHubActionsWorkflow.pfx
+        run: Remove-Item -path src\WinUi\GitHubActionsWorkflow.pfx
 
       - name: Upload MSIX package
         uses: actions/upload-artifact@v2
