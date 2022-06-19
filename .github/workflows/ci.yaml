@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
 # Inspired by https://github.com/MicrosoftDocs/windows-uwp/blob/docs/hub/apps/package-and-deploy/ci-for-winui3.md
 jobs:
   pre-release:
@@ -33,7 +37,7 @@ jobs:
           [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
 
       - name: Create the app package
-        run: msbuild src\WinUi\WinUi.csproj /p:Configuration=Release /p:Platform=x64 /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
+        run: msbuild src\WinUi\WinUi.csproj /p:Configuration=Release /p:Platform=x64 /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true /p:VersionSuffix=${{GITHUB_RUN_NUMBER}}
         env:
           Appx_Bundle: Never
           Appx_Package_Build_Mode: SideloadOnly
@@ -47,3 +51,9 @@ jobs:
         with:
           name: MSIX Package
           path: src\WinUi\Packages
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: src\WinUi\Packages\**
