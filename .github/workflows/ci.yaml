@@ -68,12 +68,6 @@ jobs:
       - name: Remove the pfx
         run: Remove-Item -path src\WinUi\GitHubActionsWorkflow.pfx
 
-      - name: Upload MSIX package
-        uses: actions/upload-artifact@v2
-        with:
-          name: MSIX Package
-          path: src\WinUi\Packages
-
       - name: Release
         uses: softprops/action-gh-release@v1
         with:

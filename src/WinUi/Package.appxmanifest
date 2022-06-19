@@ -12,7 +12,7 @@
     Version="0.0.1.0" />
 
   <Properties>
-    <DisplayName>WinUi</DisplayName>
+    <DisplayName>rui</DisplayName>
     <PublisherDisplayName>kostya9</PublisherDisplayName>
     <Logo>Assets\PackageLogo\PackageLogo.png</Logo>
   </Properties>

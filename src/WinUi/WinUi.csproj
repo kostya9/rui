@@ -10,9 +10,9 @@
     <PublishProfile>win10-$(Platform).pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
     <EnablePreviewMsixTooling>true</EnablePreviewMsixTooling>
-	<ImplicitUsings>true</ImplicitUsings>
-	<AssemblyName>rui</AssemblyName>
-	<Nullable>enable</Nullable>
+    <ImplicitUsings>true</ImplicitUsings>
+    <AssemblyName>rui</AssemblyName>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 	
   <PropertyGroup>
