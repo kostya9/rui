@@ -28,6 +28,9 @@ jobs:
 
       - name: Decode the pfx
         run: |
+          $dir = Get-Location
+          [System.IO.Directory]::SetCurrentDirectory($dir)
+
           $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_ENCODED_PFX }}")
           $certificatePath = "GitHubActionsWorkflow.pfx"
           [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
